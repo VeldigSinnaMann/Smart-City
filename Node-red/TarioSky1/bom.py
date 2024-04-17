@@ -7,7 +7,7 @@ import pandas as pd
 inputCarId = int(sys.argv[1])
 
 #les av csv filen 
-df = pd.read_csv('/home/jjhrasberry1/Desktop/TarioSky/IDnumber.csv')
+df = pd.read_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/IDnumber.csv')
 
 
 def bomImport():
