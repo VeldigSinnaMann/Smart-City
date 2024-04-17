@@ -16,10 +16,9 @@ def bomImport():
 
     #sjekker riktig rad og kolonne for den spesifikke bil
     iselectric = df.iloc[carRow, 1]
+    
+    #sikkerhet for å passe på at vi sender ut riktig data
     if (iselectric == 1 or iselectric == 0):
-        print(iselectric)
-        return iselectric
-    else:
-        return "Value not good"
+        print(iselectric, end="")
 
 bomImport()
