@@ -1,0 +1,7 @@
+{
+    "board": "pololu-a-star:avr:a-star32U4",
+    "programmer": "avrisp",
+    "output": ".arduino/output",
+    "sketch": "Zumo-car/Kjoremonster/Kjoremonster.ino",
+    "port": "COM3"
+}
