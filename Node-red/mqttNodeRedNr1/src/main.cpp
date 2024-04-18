@@ -10,7 +10,7 @@ const char* password = "";
 //ko
 
 // Add your MQTT Broker IP address, example:
-const char* mqtt_server = "10.25.17.100"; // rpi ip adresse
+const char* mqtt_server = "10.25.17.1"; // rpi ip adresse
 
 WiFiClient espClient;
 PubSubClient client(espClient);
