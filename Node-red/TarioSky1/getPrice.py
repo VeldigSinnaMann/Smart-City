@@ -13,6 +13,8 @@ inputCarId = int(sys.argv[1])
 df_grade = pd.read_csv(
     '/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/IDnumber.csv')
 
+df_bank = pd.read_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/bankDetail.csv')
+
 
 def getCarGradeFromId(carNumber):
      # hent hvilken rad bilen er i (gjøres for å holde koden enklere)
@@ -41,12 +43,33 @@ def getPriceNow():
     
     return priceNow
 
+def carGradeToDiscount(grade):
+    discount = 1 
+    if grade == 1:
+        discount = 1.1
+    elif grade == 2:
+        discount = 1.05
+    elif 3:
+        discount = 1.02
+    elif 8:
+        discount = 0.98
+    elif 9:
+        discount = 0.95
+    elif 10:
+        discount = 0.92
+    return discount
+        
+        
+        
+     
 
 def getPrice():
 
     currentPrice = getPriceNow()
   
     gradeCar = getCarGradeFromId(inputCarId)
+    
+    priceChangeRatio = carGradeToDiscount(gradeCar)
 
     # pris til kunde
     chargingPrice = currentPrice*gradeCar
