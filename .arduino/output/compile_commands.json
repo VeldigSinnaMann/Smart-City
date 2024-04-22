@@ -158,11 +158,11 @@
    "-IC:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\PololuBuzzer\\src",
    "-IC:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\PololuHD44780",
    "-IC:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\PololuOLED\\src",
-   "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4IRPulses.cpp",
+   "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4Motors.cpp",
    "-o",
-   "C:\\Users\\Aaseb\\OneDrive\\Skrivebord\\Repository\\Zumo-Smart-City\\.arduino\\output\\libraries\\Zumo32U4\\Zumo32U4IRPulses.cpp.o"
+   "C:\\Users\\Aaseb\\OneDrive\\Skrivebord\\Repository\\Zumo-Smart-City\\.arduino\\output\\libraries\\Zumo32U4\\Zumo32U4Motors.cpp.o"
   ],
-  "file": "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4IRPulses.cpp"
+  "file": "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4Motors.cpp"
  },
  {
   "directory": "c:\\Users\\Aaseb\\OneDrive\\Skrivebord\\Repository\\Zumo-Smart-City",
@@ -200,11 +200,11 @@
    "-IC:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\PololuBuzzer\\src",
    "-IC:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\PololuHD44780",
    "-IC:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\PololuOLED\\src",
-   "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4Motors.cpp",
+   "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4IRPulses.cpp",
    "-o",
-   "C:\\Users\\Aaseb\\OneDrive\\Skrivebord\\Repository\\Zumo-Smart-City\\.arduino\\output\\libraries\\Zumo32U4\\Zumo32U4Motors.cpp.o"
+   "C:\\Users\\Aaseb\\OneDrive\\Skrivebord\\Repository\\Zumo-Smart-City\\.arduino\\output\\libraries\\Zumo32U4\\Zumo32U4IRPulses.cpp.o"
   ],
-  "file": "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4Motors.cpp"
+  "file": "C:\\Users\\Aaseb\\OneDrive\\Dokumenter\\Arduino\\libraries\\Zumo32U4\\src\\Zumo32U4IRPulses.cpp"
  },
  {
   "directory": "c:\\Users\\Aaseb\\OneDrive\\Skrivebord\\Repository\\Zumo-Smart-City",
