@@ -49,13 +49,13 @@ def carGradeToDiscount(grade):
         discount = 1.1
     elif grade == 2:
         discount = 1.05
-    elif 3:
+    elif grade == 3:
         discount = 1.02
-    elif 8:
+    elif grade == 8:
         discount = 0.98
-    elif 9:
+    elif grade == 9:
         discount = 0.95
-    elif 10:
+    elif grade == 10:
         discount = 0.92
     return discount
         
@@ -64,18 +64,18 @@ def carGradeToDiscount(grade):
      
 
 def getPrice():
-
+    #finn nåtidens pris
     currentPrice = getPriceNow()
-  
+    #finn kjøremønster karakter
     gradeCar = getCarGradeFromId(inputCarId)
-    
+    #finn prisendring basert på karakter
     priceChangeRatio = carGradeToDiscount(gradeCar)
 
     # pris til kunde
-    chargingPrice = currentPrice*gradeCar
+    #chargingPrice = currentPrice*priceChangeRatio
 
     # print er output av function
-    print(chargingPrice)
+    print(str(currentPrice) + ", " + str(priceChangeRatio), end="")
 
 
 getPrice()
