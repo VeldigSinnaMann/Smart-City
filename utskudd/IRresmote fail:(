@@ -1,0 +1,162 @@
+//IR send::
+
+#include <Arduino.h>
+#include <WiFi.h>
+#include "IRremote.h"
+
+
+byte SEND_PIN = 5;
+IRsend irsend(SEND_PIN);
+
+// IRsend irsend;
+
+unsigned long infraRedCode[] = {
+  0xE0E040BF, //tv on-off
+  0xE0E0807f, //tv source
+  0x807F827D, //set-top volume up
+  0x807FE817, //set-top channel up
+  0x807F48B7, //set-top mute
+  0x807F42BD, //set-top volume down
+  0x807F58A7, //set-top channel down
+  0x807F807F  //set-top on-off
+};
+
+
+
+uint8_t code;
+void loop(){
+
+  if (code == 1){
+    code = 2;
+    }
+  else{
+    code = 1;
+    }
+
+  //  unsigned long code = 1;
+
+  // irsend.sendNEC(3108437760, 16);
+  irsend.sendNEC(infraRedCode[code], 32);
+  Serial.println(infraRedCode[code]);
+  Serial.println("Sent");
+
+  delay(1000);
+
+
+}
+
+// void loop(){
+//   for (int i = 0; i < 3; i++) {
+// 		irsend.sendSony(0xa90, 32);
+// 		delay(40);
+// 	}
+// 	delay(1000); //1 second delay between each signal burst
+//   Serial.println("Sent");
+
+// }
+
+
+//IR recive:
+#include <Arduino.h>
+#include <Zumo32U4.h>
+#include <IRremote.h>
+#include <Wire.h>
+
+
+Zumo32U4Motors motors;
+Zumo32U4OLED display;
+
+
+#define code1 3108437760
+#define code2 3927310080
+#define code3 2907897600
+
+const long RECV_PIN = A4;
+
+IRrecv irrecv(RECV_PIN);
+
+decode_results results;
+
+
+unsigned long irNum;
+
+void setup(){
+    Serial.begin(9600);
+    // IrReceiver.begin(RECV_PIN, ENABLE_LED_FEEDBACK);
+    irrecv.enableIRIn();
+    display.clear();
+    display.setLayout11x4();
+    display.gotoXY(0,0);
+    display.print("ready2");
+}
+
+
+ 
+// void loop(){
+//     if(IrReceiver.decode()){
+//     unsigned long irNum = IrReceiver.decodedIRData.decodedRawData;
+//     // Serial.println(irNum);
+//     display.gotoXY(0,0);
+//     display.print(irNum);
+//     switch (irNum)
+//     {
+//     case code1:
+//         // motors.setSpeeds(200,200);
+//         display.gotoXY(0,1);
+//         display.print("1");
+//         break;
+
+//     case code2:
+//         // motors.setSpeeds(0,0);
+//         display.gotoXY(0,2);
+//         display.print("2");
+//     break;
+
+//     case code3:
+//     // Serial.println("3");
+//     display.gotoXY(0,3);
+//     display.print("3");
+//     break;
+
+//     default:
+//         break;
+//     }
+
+//     }
+// IrReceiver.resume();
+// }
+
+void loop(){
+    if (irrecv.decode(&results)) {
+    display.gotoXY(0,1);
+    display.println(results.value, HEX);
+    // display.print(" - ");
+    display.gotoXY(0,2);
+    display.println(results.bits, DEC);
+    display.gotoXY(0,3);
+    display.println(results.decode_type);
+    // switch (results.decode_type){
+    //     case NEC: display.println("NEC"); break ;
+    //     case SONY: display.println("SONY"); break ;
+    //     case RC5: display.println("RC5"); break ;
+    //     case RC6: display.println("RC6"); break ;
+    //     case DISH: display.println("DISH"); break ;
+    //     case SHARP: display.println("SHARP"); break ;
+    //     case JVC: display.println("JVC"); break ;
+    //     case SANYO: display.println("SANYO"); break ;
+    //     case MITSUBISHI: display.println("MISUBISHI"); break ;
+    //     case SAMSUNG: display.println("SAMSUNG"); break ;
+    //     case LG: display.println("LG"); break ;
+    //     case WHYNTER: display.println("WHYNTER"); break ;
+    //     case AIWA_RC_T501: display.println("AIWARC_T501"); break ;
+    //     case PANASONIC: display.println("PNASONIC"); break ;
+    //     case DENON: display.println("DENON"); break ;
+    //   default:
+    //     case UNKNOWN: display.println("UNKNOWN"); break ;
+    //   }
+    irrecv.resume(); // Receive the next value
+  }
+  delay(300);
+}
+
+
