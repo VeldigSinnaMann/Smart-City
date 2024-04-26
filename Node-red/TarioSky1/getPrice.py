@@ -34,6 +34,7 @@ def getPriceNow():
     day = f"{today.day:02d}"
     hour = timeToday.hour
 
+    
     # produser riktig url for tiden naa og hent json
     urlString = "https://www.hvakosterstrommen.no/api/v1/prices/" + \
         str(year) + "/" + str(month) + "-" + str(day) + "_NO5.json"
