@@ -7,7 +7,10 @@ Lag en pott.
 De som kjører under grad 3 må betale 5% mer I strømpris dette legges I potten.
 Denne poten brukes til de som kjører 10% best. Disse får disse pengene fordelt.
 
-*info til bankDetail.csv
+*bomEsp32 er koden til den fysiske bommen. denne sender skiltnummer til skyen og bøtlegger om bilen er ikke elektrisk
 
+
+*info til bankDetail.csv
 depositumskonto for rabatt: 12345678
-deretter følger 
+
+
