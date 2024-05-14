@@ -1,8 +1,8 @@
 accountNumber, amount, name
 12345678,10000," ""depositumDiscount"""
 12340001,10000," ""bilkonto1"" "
-12340002,9700," ""bilkonto2"""
-12340003,10010," ""bilkonto3"""
+12340002,9600," ""bilkonto2"""
+12340003,9810," ""bilkonto3"""
 12340004,10000," ""bilkonto4"""
 12340005,10000," ""bilkonto5"""
 12340006,10000," ""bilkonto6"""
