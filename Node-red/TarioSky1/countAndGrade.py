@@ -29,6 +29,6 @@ for car in plateNumberList:
     carRow = df_database[df_database['car-ID'] == car].index[0]
     print(carRow)
     #her formaterer vi fra prosnet til en skala fra en til 10
-    df_database.iloc[carRow, 2] = 10-carProsentage*10
+    df_database.iloc[carRow, 2] = round(10-carProsentage*10, 2)
 
 df_database.to_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/IDnumber.csv', index=False)
