@@ -3,10 +3,7 @@
 
 import pandas as pd
 from datetime import datetime, timedelta
-import sys
 
-
-licensePlate = int(sys.argv[1])
 timeNow = datetime.now()
 
 df_logg = pd.read_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/logg.csv')
