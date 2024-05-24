@@ -1,4 +1,4 @@
-# henter kjøreskore til bruker fra database
+# henter brukerkonto til bruker fra database
 
 import sys 
 import pandas as pd
@@ -26,6 +26,6 @@ def getUserData():
     getUserGrade = df_userData.iloc[getDataRow, 2]
     getUserBank = df_userData.iloc[getDataRow, 3]
 
-    return getUserGrade
+    return getUserBank
 
 print(getUserData())
