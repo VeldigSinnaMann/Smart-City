@@ -23,5 +23,4 @@ def getUserData():
     getUserBank = df_userData.iloc[getDataRow, 3]
     return getUserGrade, getUserBank
 
-# print(getUserID())
 print(getUserData())
