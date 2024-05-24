@@ -18,7 +18,6 @@ def getUsers():
     try:
         userRow = df_user[df_user['username'] == inUser].index[0]
         whatToDo = 2
-
     except:
         whatToDo = 1
     
@@ -32,7 +31,6 @@ def checkPassword():
         if inPasword == getPassword:
             whatToDo = 0
         
-
     return whatToDo
 
 def runSys():
