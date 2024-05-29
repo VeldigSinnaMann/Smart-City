@@ -16,7 +16,7 @@ def getPriceNow():
 
     # produser riktig url for tiden naa og hent json
     urlString = "https://www.hvakosterstrommen.no/api/v1/prices/" + \
-        str(year) + "/" + str(month) + "-" + str(day) + "_NO5.json"
+        str(year) + "/" + str(month) + "-" + str(day) + "_NO3.json"
     response = requests.get(urlString)
     response_dict = response.json()
     priceNow = response_dict[hour]['NOK_per_kWh']  # hent ut pris fra json fil

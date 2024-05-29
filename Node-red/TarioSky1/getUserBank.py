@@ -28,4 +28,4 @@ def getUserData():
 
     return getUserBank
 
-print(getUserData())
+print(getUserData(), end="")
