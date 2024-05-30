@@ -24,7 +24,7 @@ def changeMoneyOnAccount(accountNumber, amount):
     accountRow = df_bank[df_bank['accountNumber'] == int(accountNumber)].index[0]
     balance = df_bank.iloc[accountRow, 1] 
    
-    df_bank.iloc[accountRow, 1] = balance+amount # finn mengde spenn i konto
+    df_bank.iloc[accountRow, 1] = balance + amount # finn mengde spenn i konto
     return ( df_bank.iloc[accountRow, 1])
 
 
@@ -32,19 +32,19 @@ def checkAccount():
     balance = df_bank.iloc[getBankRow(), 1] 
     return balance
 
-amount = whatToPay()
 
-if(checkAccount() > whatToPay()):
-    try:
-        changeMoneyOnAccount(bankID, amount)
-        # print("sucsess")
-        print("sucsess, your balance is ")
-        print(checkAccount())
-    except:
-        # print("failed")
-        print(2)
-else:
-    # print("failed")
-    print(3)
+def payment():
+    if(checkAccount() > whatToPay()):
+        try:
+             changeMoneyOnAccount(bankID, whatToPay())
+             print(0, end="")
+            #  print(checkAccount())
+        except:
+            print(1, end="")
+    else:
+        print(2, end="")
+
+
+payment()
 
 df_bank.to_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/bankDetail.csv', index=False)
