@@ -1,0 +1,143 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <PubSubClient.h>
+#include <WiFi.h>
+
+
+#define I2C_SLAVE_ADDRESS 0x04
+
+char licencePlate[] = "0001";
+long lastMsg = 0;
+char msg[50];
+int value = 0;
+WiFiClient espClient;
+PubSubClient client(espClient);
+unsigned long lastMillis =0;
+const char *ssid = "NTNU-IOT";
+const char *password = "";
+const char *mqtt_server = "10.25.18.120"; // rpi ip adresse
+const char *mqtt_topic_steeringWheel = "zumo/kontrollerInput";
+const char *mqtt_topic_drivingPattern = "esp32/kjoreMonster";
+void setup()
+{
+    Wire.begin();       // Setter opp ESP32 som master
+    Serial.begin(115200); // Starter serial for utskrift
+    setup_wifi();       // Koble til Wifi
+    client.setServer(mqtt_server, 1883);
+    client.setCallback(callback);
+}
+void setup_wifi()
+{
+    delay(10);
+    // kolbe på wifi
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED)
+    { // viser prikker til kobling er god
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+}
+void reconnect() {
+    if (!client.connected()) {
+        Serial.print("Attempting MQTT connection...");
+        String clientId = "ESP32Client-";
+        clientId += String(random(0xffff), HEX);
+        if (client.connect(clientId.c_str())) {
+            Serial.println("connected");
+            client.subscribe(mqtt_topic_steeringWheel);  // Abonner på MQTT topic
+        } else {
+            Serial.print("failed, rc=");
+            Serial.print(client.state());
+            Serial.println(" try again in 5 seconds");
+            delay(5000);
+        }
+    }
+}
+
+union FloatConverter
+{
+    float value;
+    uint8_t bytes[sizeof(float)];
+};
+
+// Motta data fra joystick og send til zumo for styring av bil
+void callback(char* topic, byte* payload, unsigned int length) {
+    char* message = new char[length + 1];
+    // Copy payload to message
+    for (unsigned int i = 0; i < length; i++) {
+        message[i] = (char)payload[i];
+    }
+    message[length] = '\0';
+
+    // Split the string on comma
+    char* ptr = strtok(message, ",");
+    if(ptr) {
+        int MappedLeftTrackVal = atoi(ptr);
+        Serial.print("Left val: ");
+        Serial.print(MappedLeftTrackVal);
+        ptr = strtok(NULL, ",");
+
+        if(ptr) {
+            int MappedRightTrackVal = atoi(ptr);
+            Serial.print(" Right val: ");
+            Serial.println(MappedRightTrackVal);
+
+            // Now send these values with i2c
+            send_i2c_data(MappedLeftTrackVal, MappedRightTrackVal);
+        }
+    }
+    delete[] message;
+}
+
+// Sende data til zumo for styring av bil
+void send_i2c_data(int left, int right)
+{
+    Wire.beginTransmission(4);
+    Wire.write(left);
+    Wire.write(right);
+    Wire.endTransmission();
+    Serial.print("Sent I2C data: ");
+    Serial.print(left);
+    Serial.print(", ");
+    Serial.print(right);
+    Serial.println(" ");
+}
+
+// mottar kjøremønsterdata fra zumo og sender til mqtt
+void check_for_i2c_data()
+{
+    Wire.requestFrom(4, sizeof(float));
+    if (Wire.available() == sizeof(float))
+    {
+        FloatConverter converter;
+        for (int i = 0; i < sizeof(float); i++)
+        {
+            converter.bytes[i] = Wire.read();
+        }
+        Serial.print("Recieved kjøremønsterdata fra Zumo: ");
+        Serial.println(converter.value, 3);
+        char sendValue[20];
+        dtostrf(converter.value, 1, 3, sendValue);
+        strcat(sendValue, ", ");
+        strcat(sendValue, licencePlate);
+        client.publish(mqtt_topic_drivingPattern, sendValue);
+    }
+}
+
+void loop() {
+    if (!client.connected()) {
+        unsigned long currentMillis = millis();
+        if (currentMillis - lastMillis >= 5000) {
+            lastMillis = currentMillis;
+            reconnect();
+        }
+    }
+    client.loop();
+}
