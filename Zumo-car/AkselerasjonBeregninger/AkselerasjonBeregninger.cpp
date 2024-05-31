@@ -1,72 +1,172 @@
 #include <Wire.h>
 #include <Zumo32U4.h>
 
-Zumo32U4IMU imu;
 
-char report[120];
+Zumo32U4IMU imu;
 const float conversion_factor = 0.061; // [mg/LSB] akselerometerlesningene konverteres til enheter av g ved å bruke sensitiviteten
-const float g = 8.91;                  // [m/s^2] tyngdeaksellerasjon
-float accelerationValues[2];           // Array to hold acceleration values
+const float g = 9.81;                  // [m/s^2] tyngdeaksellerasjon
+float accelerations_m_s2[3];
+
+// Variabler for beregning av gjenomsnittlig akselerasjon de siste x minuttene
+const unsigned long UpdateAverageInterval = 1000; // Hvor ofte ny verdi skal legges til i gjenomsnittet som skal beregnes
+unsigned long lastUpdateAverageTime = 0;          // lagrer sist tid for gjennomsnittsoppdatering
+const int bufferlength = 60;                      // Lagrer 60 sek verd av data
+float accelerationBuffer[bufferlength];           // Array for å lagre verdiene det skal tas gj.snitt av
+int bufferIndex = 0;                              // Starter lagring i buffer-arrayet på plass 0
+
+// Gj,snitt x-akse
+float accelXBuffer[bufferlength];
+
+// Gj.snitt y-akse
+float accelYBuffer[bufferlength];
+
+// Struct til å beregne gj.snittsakselerasjonen til alle aksene
+struct AccelerationSums
+{
+    float avgX; // Gj.snitt x-akse
+    float avgY; // Gj.snitt x-akse
+    float avgA; // Gj.snitt total
+};
+
+union FloatUnion
+{
+    float value;
+    uint8_t bytes[sizeof(float)];
+};
 
 void setup()
 {
-  Wire.begin();
-  Serial.begin(9600);
-
-  if (!imu.init())
-  {
-    // Failed to detect the compass.
-    ledRed(1);
-    while (1)
+    Wire.begin(4); // Setter Zumo som slave
+    Wire.onReceive(recieveEvent); // Registrerer om data er mottatt fra ESP-en
+    Serial.begin(1152000); 
+    if (!imu.init())
     {
-      Serial.println(F("Failed to initialize IMU sensors."));
-      delay(100);
+        // Failed to detect the compass.
+        ledRed(1);
+        while (1)
+        {
+            Serial.println(F("Failed to initialize IMU sensors."));
+            delay(100);
+        }
     }
-  }
+    imu.enableDefault();
 
-  imu.enableDefault();
+    for (int i = 0; i < bufferlength; i++)
+    {
+        accelerationBuffer[i] = 0;
+    }
 }
 
 void loop()
 {
+    if (millis() - UpdateAverageInterval >= lastUpdateAverageTime)
+    {
+        float accelerations_m_s2[3];
+        accelerationValues_m_s2(accelerations_m_s2);
+        updateAccelerationBuffer(accelerations_m_s2[0], accelerations_m_s2[1], accelerations_m_s2[2]);
+        lastUpdateAverageTime = millis();
 
-  calculate_Acceleration_g(accelerationValues); // Calculate acceleration in g and store in array
+        AccelerationSums averages = calculateAverageAccel();
 
-  float acceleration_m_s2 = calculate_Acceleration();
+        //Serial.print(" Average A: ");
+        //Serial.println(averages.avgA);
 
-  // Now print out the acceleration values
-  Serial.print("ax: ");
-  Serial.print(accelerationValues[0], 4); // Print ax with 4 decimal places
-  Serial.print(" g, ay: ");
-  Serial.print(accelerationValues[1], 4); // Print ay with 4 decimal places
-  Serial.println("g ");
+        FloatUnion fu;
+        fu.value = averages.avgA; // Lagrer verdien til averages.avgA (gjennomsnitt total aks) som en union(delt opp i bytes)
 
-  Serial.print(F("Total acceleration (m/s^2): "));
-  Serial.println(acceleration_m_s2);
-
-  delay(1000);
+        Wire.beginTransmission(4);
+        Wire.write(fu.bytes, sizeof(float));
+        Wire.endTransmission();
+    }
 }
 
-// Calculate acceleration from accelerometer raw data
-// Driter i z-aksen, anntar byen er flat!
-float calculate_Acceleration()
+void accelerationValues_m_s2(float accelerations_m_s2[3])
 {
-  // Accelerations in g's per axis
-  float ax = imu.a.x * conversion_factor / 1000;
-  float ay = imu.a.y * conversion_factor / 1000;
+    imu.read();
 
-  float a = sqrtf((ax * ax) + (ay * ay)); // Acceleration in g's total
-  float acceleration = a * g;             // Acceleration in m/s^2
-  return acceleration;
+    float ax = imu.a.x * conversion_factor / 1000; // Accel x i g's
+    float ay = imu.a.y * conversion_factor / 1000; // Accel y i g's
+    float a = sqrtf((ax * ax) + (ay * ay));        // Acceleration in g's total
+
+    accelerations_m_s2[0] = ax * g; // Accel x i m/s^2
+    accelerations_m_s2[1] = ay * g; // Accel y i m/s^2
+    accelerations_m_s2[2] = a * g;  // Absolute Accel total i m/s^2
 }
 
-// Function to calculate and return g acceleration values in an array
-// For feilsøking
-void calculate_Acceleration_g(float accelerationArray[3])
+void displayWarnings(const AccelerationSums &averages, const float *currentAccels)
 {
-  imu.read();
+    const int16_t accelerationTreshold = 2;
+    const int16_t averageTreshold = 1;
 
-  // Convert accelerometer readings from milli-g to g
-  accelerationArray[0] = imu.a.x * conversion_factor / 1000.0; // ax
-  accelerationArray[1] = imu.a.y * conversion_factor / 1000.0; // ay
+    if (accelerations_m_s2[0] < -accelerationTreshold)
+    {
+        Serial.println("You are breaking to hard, try slowing down earlier :)");
+    }
+    else if (accelerations_m_s2[0] > accelerationTreshold)
+    {
+        Serial.println("You are speeding too fast, try accelerating slower :)");
+    }
+
+    if (averages.avgA > averageTreshold)
+    {
+        Serial.println("Warning: Average total acceleration exceeds 1 m/s^2!");
+        if (averages.avgX < -averageTreshold)
+        {
+            Serial.println(" You are generally breaking too hard, try slowing down before stops!");
+        }
+        else if (averages.avgX > averageTreshold)
+        {
+            Serial.println("You are generally accelerating too fast!");
+        }
+    }
+}
+
+void updateAccelerationBuffer(float newXAcceleration, float newYAcceleration, float newAcceleration)
+{
+    // Fyll på arrayene med akselerasjoner
+    accelXBuffer[bufferIndex] = newXAcceleration;
+    accelYBuffer[bufferIndex] = newYAcceleration;
+    accelerationBuffer[bufferIndex] = newAcceleration;
+    // Hopp til neste plass i arrayene
+    bufferIndex = (bufferIndex + 1) % bufferlength; // start på nytt dersom nådd 60
+}
+
+AccelerationSums calculateAverageAccel()
+{
+    float sumX = 0, sumY = 0, sumA = 0;
+    // Opdater plassene i arrayet med akselerasjonsverdier
+    for (int i = 0; i < bufferlength; i++)
+    {
+        sumX += accelXBuffer[i];
+        sumY += accelYBuffer[i];
+        sumA += accelerationBuffer[i];
+    }
+    AccelerationSums sums;
+    sums.avgX = sumX / bufferlength;
+    sums.avgY = sumY / bufferlength;
+    sums.avgA = sumA / bufferlength;
+
+    // Returner de beregnede gjenomsnittene
+    return sums;
+}
+
+void recieveEvent(int howMany)
+{
+    if (howMany > 0)
+    {
+        char recievedData[howMany];
+        for (int i = 0; i < howMany; i++)
+        {
+            recievedData[i] = Wire.read();
+        }
+        handleRecievedData(recievedData, howMany);
+    }
+}
+
+void handleRecievedData(char* data, int length)
+{ 
+    Serial.print("Data Recieved: ");
+    Serial.print(data);
+    Serial.print(" Length: ");
+    Serial.println(length);
 }
