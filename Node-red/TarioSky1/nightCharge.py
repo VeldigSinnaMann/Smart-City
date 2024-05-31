@@ -1,3 +1,5 @@
+#ikke i bruk
+
 import sys
 import pandas as pd
 import requests
