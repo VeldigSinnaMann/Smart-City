@@ -3,29 +3,35 @@
 #include <PubSubClient.h>
 #include <WiFi.h>
 
+#define I2C_SLAVE_ADDRESS 4
 
-#define I2C_SLAVE_ADDRESS 0x04
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+
+const char *ssid = "NTNU-IOT";
+const char *password = "";
+const char *mqtt_server = "10.25.17.1"; // rpi ip adresse
+const char *mqtt_topic_steeringWheel = "zumo/kontrollerInput";
+const char *mqtt_topic_drivingPattern = "esp32/kjoreMonster";
 
 char licencePlate[] = "0001";
 long lastMsg = 0;
 char msg[50];
 int value = 0;
-WiFiClient espClient;
-PubSubClient client(espClient);
-unsigned long lastMillis =0;
-const char *ssid = "NTNU-IOT";
-const char *password = "";
-const char *mqtt_server = "10.25.18.120"; // rpi ip adresse
-const char *mqtt_topic_steeringWheel = "zumo/kontrollerInput";
-const char *mqtt_topic_drivingPattern = "esp32/kjoreMonster";
+unsigned long lastReconnectTime = 0;
+unsigned long lastRequestTime = 0;
+
 void setup()
 {
-    Wire.begin();       // Setter opp ESP32 som master
-    Serial.begin(115200); // Starter serial for utskrift
-    setup_wifi();       // Koble til Wifi
-    client.setServer(mqtt_server, 1883);
-    client.setCallback(callback);
+    Wire.begin();         // Setting ESP32 as master
+    Serial.begin(115200); 
+    setup_wifi();      
+    client.setServer(mqtt_server, 1883); // Connect to mqtt server
+    client.setCallback(callback);        // Run callback to drive car
 }
+
+// Connect to Wifi
 void setup_wifi()
 {
     delay(10);
@@ -44,6 +50,8 @@ void setup_wifi()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 }
+
+// Reconnect mqtt
 void reconnect() {
     if (!client.connected()) {
         Serial.print("Attempting MQTT connection...");
@@ -61,59 +69,52 @@ void reconnect() {
     }
 }
 
+// Convert frol float to byte-array
 union FloatConverter
 {
     float value;
     uint8_t bytes[sizeof(float)];
 };
 
-// Motta data fra joystick og send til zumo for styring av bil
-void callback(char* topic, byte* payload, unsigned int length) {
-    char* message = new char[length + 1];
-    // Copy payload to message
-    for (unsigned int i = 0; i < length; i++) {
-        message[i] = (char)payload[i];
-    }
+// Recieve data from joystick-Esp over I2C and send to zumo for steering
+void callback(char *topic, byte *payload, unsigned int length) {
+    char message[length + 1];
+    memcpy(message, payload, length);
     message[length] = '\0';
 
-    // Split the string on comma
-    char* ptr = strtok(message, ",");
-    if(ptr) {
-        int MappedLeftTrackVal = atoi(ptr);
-        Serial.print("Left val: ");
-        Serial.print(MappedLeftTrackVal);
-        ptr = strtok(NULL, ",");
+    // Decompose payload to usable values
+    char *saveptr;
+    int16_t leftMotor = atoi(strtok_r(message, ",", &saveptr));
+    int16_t rightMotor = atoi(strtok_r(NULL, ",", &saveptr));
 
-        if(ptr) {
-            int MappedRightTrackVal = atoi(ptr);
-            Serial.print(" Right val: ");
-            Serial.println(MappedRightTrackVal);
+    // Ensure values are within range
+    leftMotor = constrain(leftMotor, 0, 800);
+    rightMotor = constrain(rightMotor, 0, 800);
 
-            // Now send these values with i2c
-            send_i2c_data(MappedLeftTrackVal, MappedRightTrackVal);
-        }
-    }
-    delete[] message;
+    // Now send these values with I2C
+    send_i2c_data(leftMotor, rightMotor);
 }
 
-// Sende data til zumo for styring av bil
-void send_i2c_data(int left, int right)
-{
-    Wire.beginTransmission(4);
-    Wire.write(left);
-    Wire.write(right);
+// Send data to zumo for steering
+void send_i2c_data(int16_t leftMotor, int16_t rightMotor) {
+    Wire.beginTransmission(I2C_SLAVE_ADDRESS);
+    Wire.write(lowByte(leftMotor));
+    Wire.write(highByte(leftMotor));
+    Wire.write(lowByte(rightMotor));
+    Wire.write(highByte(rightMotor));
     Wire.endTransmission();
-    Serial.print("Sent I2C data: ");
-    Serial.print(left);
-    Serial.print(", ");
-    Serial.print(right);
-    Serial.println(" ");
+
+    // Print the data sent via I2C for debugging
+    Serial.print("Sent via I2C - Left Motor: ");
+    Serial.print(leftMotor);
+    Serial.print(", Right Motor: ");
+    Serial.println(rightMotor);
 }
 
-// mottar kjøremønsterdata fra zumo og sender til mqtt
+// Check for driving pattern data from zumo to send to mqtt server
 void check_for_i2c_data()
 {
-    Wire.requestFrom(4, sizeof(float));
+    Wire.requestFrom(I2C_SLAVE_ADDRESS, sizeof(float));
     if (Wire.available() == sizeof(float))
     {
         FloatConverter converter;
@@ -133,11 +134,18 @@ void check_for_i2c_data()
 
 void loop() {
     if (!client.connected()) {
-        unsigned long currentMillis = millis();
-        if (currentMillis - lastMillis >= 5000) {
-            lastMillis = currentMillis;
+        unsigned long CurrentReconnectTime = millis();
+        if (CurrentReconnectTime - lastReconnectTime >= 5000) {
+            lastReconnectTime = CurrentReconnectTime;
             reconnect();
         }
     }
+
     client.loop();
+    unsigned long currentRequestTime = millis();
+    if (currentRequestTime - lastRequestTime >= 1000) {
+        check_for_i2c_data();
+        lastRequestTime = currentRequestTime;
+    }
+    
 }
