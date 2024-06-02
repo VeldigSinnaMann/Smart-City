@@ -53,7 +53,7 @@ def getPriceNow():
     response_dict = response.json()
     priceNow = response_dict[hour]['NOK_per_kWh']  # hent ut pris fra json fil
 
-    return priceNow
+    return priceNow*10
 
 
 def carGradeToDiscount(grade):
