@@ -2,8 +2,8 @@ import sys
 import pandas as pd
 
 bankID = sys.argv[1] # kontonummer til bruker
-chargelevel = sys.argv[2] # hvor mye skal en lade, i prosent
-userprice = sys.argv[3] # justert pris til bruker
+chargeLevel = sys.argv[2] # hvor mye skal en lade, i prosent
+userPrice = sys.argv[3] # justert pris til bruker
 
 df_bank = pd.read_csv(
     '/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/bankDetail.csv'
@@ -12,7 +12,7 @@ df_bank = pd.read_csv(
 
 def whatToPay():
     baterypack = float(40) # batterikapasitet på bateri
-    amount = -(baterypack/100 * float(chargelevel)) * float(userprice)
+    amount = -(baterypack/100 * float(chargeLevel)) * float(userPrice)
     return amount
 
 def getBankRow():
@@ -20,7 +20,7 @@ def getBankRow():
     return bankRow
 
 
-def changeMoneyOnAccount(accountNumber, amount):
+def changeBalanceOnAccount(accountNumber, amount):
     accountRow = df_bank[df_bank['accountNumber'] == int(accountNumber)].index[0]
     balance = df_bank.iloc[accountRow, 1] 
    
@@ -36,7 +36,7 @@ def checkAccount():
 def payment():
     if(checkAccount() > whatToPay()):
         try:
-             changeMoneyOnAccount(bankID, whatToPay())
+             changeBalanceOnAccount(bankID, whatToPay())
              print(0, end="")
             #  print(checkAccount())
         except:
