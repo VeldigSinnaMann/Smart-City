@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 
 # Get inputs from command line arguments
-score = round(sys.argv[1], 3) 
+score = round(float(sys.argv[1]), 3) 
 licensePlate = sys.argv[2]
 timeStamp = datetime.now()
 
