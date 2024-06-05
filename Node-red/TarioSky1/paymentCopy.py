@@ -15,12 +15,12 @@ userPrice = sys.argv[3] # justert pris til bruker
 
 depositAccount = 12345678 #kontonummer til depositumskonto
 
-
+#last ned bankDetaljer
 df_bank = pd.read_csv(
     '/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/bankDetail.csv'
 )
 
-
+#hent ut nåværende pris
 def getPriceNow():
     # finn dato. f-string for å faa to siffer ved tall < 10
     today = date.today()
@@ -39,17 +39,18 @@ def getPriceNow():
 
     return priceNow*10
 
-
+#finner prisen 
 def whatToPay():
     baterypack = float(40) # batterikapasitet på bateri
     amount = -(baterypack/100 * float(chargeLevel)) * float(userPrice)
     return amount
 
+#finn bankrad
 def getBankRow():
     bankRow = df_bank[df_bank['accountNumber'] == int(userAccountNumber)].index[0]
     return bankRow
 
-
+#Endrer penger på kontoNummer
 def changeBalanceOnAccount(accountNumber, amount):
     accountRow = df_bank[df_bank['accountNumber'] == int(accountNumber)].index[0]
     balance = df_bank.iloc[accountRow, 1] 
@@ -58,6 +59,7 @@ def changeBalanceOnAccount(accountNumber, amount):
     return ( df_bank.iloc[accountRow, 1])
 
 
+#Finn veri på konto
 def checkAccount():
     balance = df_bank.iloc[getBankRow(), 1] 
     return balance
@@ -65,7 +67,7 @@ def checkAccount():
 
 def payment():
     standardPrice = -(40/100 * float(chargeLevel)) * float(getPriceNow()) #basispris
-    if(checkAccount() > whatToPay()):
+    if(checkAccount() > whatToPay()): #sjekk om bruker har nok på konto
         try:
              changeBalanceOnAccount(userAccountNumber, whatToPay()) #ta penger fra brukerkonto
              changeBalanceOnAccount(depositAccount, round(standardPrice-whatToPay(), 2)) #ta/gi penger fra depositumskonto
@@ -80,4 +82,6 @@ def payment():
 
 payment()
 
+
+#skriv ned til database.
 df_bank.to_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/bankDetail.csv', index=False)

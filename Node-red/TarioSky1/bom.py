@@ -6,18 +6,21 @@ import pandas as pd
 #sys.argv[1] er stringen etter python3 filnamn.py og i dette tilfelle bilnummer
 inputCarId = int(sys.argv[1])
 
-#les av csv filen 
+#last ned IDnumber.csv
 df_carId = pd.read_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/IDnumber.csv')
 
-#dataframe bank
+#last ned bankDetail.csv
 df_bank = pd.read_csv('/home/jjhrasberry1/Desktop/Zumo-Smart-City/Node-red/TarioSky1/bankDetail.csv')
 
 def changeMoneyOnAccount(accountNumber, amount):
-    accountRow = df_bank[df_bank['accountNumber'] == accountNumber].index[0]
+    #finn summen på konto
+    accountRow = df_bank[df_bank['accountNumber'] == accountNumber].index[0] 
     balance = df_bank.iloc[accountRow, 1] 
-   
-    df_bank.iloc[accountRow, 1] = balance+amount # finn mengde spenn i konto
-    print( df_bank.iloc[accountRow, 1])
+    
+    #endre antall kroner på konto
+    df_bank.iloc[accountRow, 1] = balance+amount 
+    print( df_bank.iloc[accountRow, 1]) 
+
 
 def bomImport():
     #hent hvilken rad bilen er i (gjøres for å holde koden enklere)
