@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-// Declaration of variables
+// Deklarer variabler
 extern uint8_t LeftTrackPin;
 extern uint8_t RightTrackPin;
 extern int LeftTrack;
@@ -15,7 +15,7 @@ extern int delayAtZero;
 extern int MappedLeftTrackVal;
 extern int MappedRightTrackVal;
 
-// Function declarations
+// Funksjonsdeklarering
 void setupJoystick();
 void readAndUpdateJoystick();
 
