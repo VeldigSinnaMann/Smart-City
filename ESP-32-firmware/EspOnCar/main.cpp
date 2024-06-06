@@ -1,26 +1,29 @@
+//Imorterer nødvendige bibliotek
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
-
+//setter slave adresse
 #define I2C_SLAVE_ADDRESS 0x04
-
-const char* ssid = "Phone 2";
-const char* password = "AgnesErHot21";
+//Erkærer wifi og mqtt konstanter
+const char* ssid = "";
+const char* password = "";
 const char* mqtt_server = "192.168.95.41";
 const char* mqtt_topic = "zumo/kontrollerInput";
 
+//starter pubsub og wifi
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+// millis for delay i loop
 unsigned long lastMillis = 0;
-
+// kode for å sende til zumo
 void send_i2c_data(const char* data) {
     Wire.beginTransmission(I2C_SLAVE_ADDRESS);
     Wire.write(data);
     Wire.endTransmission();
 }
-
+// oppstart av wifi
 void setup_wifi() {
     delay(10);
     Serial.println();
@@ -39,7 +42,7 @@ void setup_wifi() {
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 }
-
+//for å koble seg tilbake på Nodre-RED
 void reconnect() {
     if (!client.connected()) {
         Serial.print("Attempting MQTT connection...");
@@ -56,6 +59,7 @@ void reconnect() {
     }
 }
 
+// tar imot data fra Node-RED
 void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print("Message arrived [");
     Serial.print(topic);
@@ -67,7 +71,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println(mqtt_data);
     send_i2c_data(mqtt_data.c_str());
 }
-
+// setup der vi setter Serial wifi og starter kobling til Node-RED
 void setup() {
     Serial.begin(115200);
     setup_wifi();
@@ -75,7 +79,7 @@ void setup() {
     client.setCallback(callback);
     Wire.begin();
 }
-
+// sjekker om vi er koblet til Node-RED
 void loop() {
     if (!client.connected()) {
         unsigned long currentMillis = millis();
